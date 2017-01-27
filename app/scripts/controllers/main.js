@@ -15,21 +15,29 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
       {id: 4, label: 'd4'}
    ];
 
-   $scope.edges = _.map($scope.nodes, function () {return [];});
+   $scope.nodeDataSet = new vis.DataSet($scope.nodes);
 
-   $scope.ticked = function (from, to) {
-      var edge = {id: from + '-' + to, from: parseInt(from), to: to};
+   $scope.requirements = [
+      {id: 0, label: 'req1'}
+   ];
 
-      if ($scope.edges[from][to]) {
-         $scope.networkData.edges.add(edge);
-      } else {
-         $scope.networkData.edges.remove(edge);
-      }
+   $scope.extendRequirement = function (req) {
+      req.edgeDataSet = new vis.DataSet([]);
+      req.edges = _.map($scope.nodes, function () {return [];});
+
+      return req;
    };
 
-   $scope.networkData = {
-      nodes: new vis.DataSet($scope.nodes),
-      edges: new vis.DataSet([])
+   $scope.requirements = _.map($scope.requirements, $scope.extendRequirement);
+
+   $scope.ticked = function (from, to, req) {
+      var edge = {id: from + '-' + to, from: parseInt(from), to: to};
+
+      if (req.edges[from][to]) {
+         req.edgeDataSet.add(edge);
+      } else {
+         req.edgeDataSet.remove(edge);
+      }
    };
 
    $scope.networkOptions = {
