@@ -1,0 +1,34 @@
+<div>
+    <table class="table table-bordered table-hover">
+        <thead>
+        <th>Id</th>
+        <th>Label</th>
+        <th></th>
+        </thead>
+        <tbody>
+        <tr ng-repeat="node in nodes">
+            <td>{{node.id}}</td>
+            <td>
+                <span editable-text="node.label" e-name="label" e-form="rowform">{{ node.label || 'empty' }}</span>
+            </td>
+            <td style="white-space: nowrap">
+                <!-- form -->
+                <form editable-form name="rowform" onbeforesave="saveNode($data, node.id)" ng-show="rowform.$visible"
+                      class="form-buttons form-inline" shown="inserted == node">
+                    <button type="submit" ng-disabled="rowform.$waiting" class="btn btn-primary">
+                        save
+                    </button>
+                    <button type="button" ng-disabled="rowform.$waiting" ng-click="rowform.$cancel()" class="btn btn-default">
+                        cancel
+                    </button>
+                </form>
+                <div class="buttons" ng-show="!rowform.$visible">
+                    <button type="button" class="btn btn-primary" ng-click="rowform.$show()">edit</button>
+                    <button type="button" class="btn btn-danger" ng-hide="$index == 0" ng-click="removeNode($index)">del</button>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <button type="button" class="btn btn-default" ng-click="addNode()">Add row</button>
+</div>
