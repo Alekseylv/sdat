@@ -38,6 +38,10 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
    $scope.ticked = function (from, to, req) {
       var edge = {id: from + '-' + to, from: parseInt(from), to: to};
 
+      console.log(req.nodeDataSet);
+      console.log(req.nodeDataSet._data);
+
+
       if (req.edges[from][to]) {
          addIfNeeded(req, from);
          addIfNeeded(req, to);
