@@ -23,8 +23,7 @@
 
     <editable-table nodes="requirements" pre-create="extendRequirement(node)"></editable-table>
 
-    <editable-table nodes="nodes" on-create="nodeDataSet.add(node)" on-delete="nodeDataSet.remove(node)"
-                    on-update="nodeDataSet.update(node)"></editable-table>
+    <editable-table nodes="nodes"></editable-table>
 
 
     <uib-tabset active="active">
@@ -39,21 +38,16 @@
                 <tr ng-repeat="node in nodes track by node.id">
                     <td>{{node.label}}</td>
                     <td ng-repeat="node2 in nodes track by node2.id">
-                        <input
-                                type="checkbox"
-                                ng-model="req.edges[node.id][node2.id]"
-                                name="{{node.id + '' + node2.id}}"
-                                ng-change="ticked(node.id, node2.id, req)"
-                        >
+                        <input type="checkbox" ng-model="req.edges[node.id][node2.id]"
+                                name="{{node.id + '' + node2.id}}" ng-change="ticked(node.id, node2.id, req)">
                     </td>
-
                 </tr>
                 </tbody>
             </table>
 
             <div class="panel panel-default">
                 <div class="panel-body">
-                    <vis-network nodes="nodeDataSet" edges="req.edgeDataSet" options="networkOptions" id="previewNetwork-{{req.id}}">
+                    <vis-network nodes="req.nodeDataSet" edges="req.edgeDataSet" options="networkOptions" id="previewNetwork-{{req.id}}">
                     </vis-network>
                 </div>
             </div>

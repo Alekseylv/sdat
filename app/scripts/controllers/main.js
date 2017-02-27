@@ -15,7 +15,12 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
       {id: 4, label: 'd4'}
    ];
 
-   $scope.nodeDataSet = new vis.DataSet($scope.nodes);
+   $scope.networkOptions = {
+      edges: {
+         arrows: 'to'
+      },
+      height: '500'
+   };
 
    $scope.requirements = [
       {id: 0, label: 'req1'}
@@ -23,8 +28,8 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
    $scope.extendRequirement = function (req) {
       req.edgeDataSet = new vis.DataSet([]);
+      req.nodeDataSet = new vis.DataSet([]);
       req.edges = _.map($scope.nodes, function () {return [];});
-
       return req;
    };
 
@@ -34,17 +39,32 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
       var edge = {id: from + '-' + to, from: parseInt(from), to: to};
 
       if (req.edges[from][to]) {
+         addIfNeeded(req, from);
+         addIfNeeded(req, to);
          req.edgeDataSet.add(edge);
       } else {
          req.edgeDataSet.remove(edge);
+         removeIfNeeded(req, from);
+         removeIfNeeded(req, to);
+      }
+   };
+   
+   var removeIfNeeded = function (req, nodeId) {
+      if (getEdgesOfNode(req, nodeId).length === 0) {
+         req.nodeDataSet.remove(nodeId);
       }
    };
 
-   $scope.networkOptions = {
-      edges: {
-         arrows: 'to'
-      },
-      height: '500'
+   var addIfNeeded = function (req, nodeId) {
+      if (req.nodeDataSet.get(nodeId) === null) {
+         req.nodeDataSet.add($scope.nodes[nodeId]);
+      }
+   };
+
+   var getEdgesOfNode = function(req, nodeId) {
+      return req.edgeDataSet.get().filter(function (edge) {
+         return edge.from === nodeId || edge.to === nodeId;
+      });
    };
 
 })
