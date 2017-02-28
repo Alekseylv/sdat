@@ -1,26 +1,8 @@
-<div class="jumbotron">
-    <h1>'Allo, 'Allo!</h1>
-    <p class="lead">
-        <img src="images/yeoman.png" alt="I'm Yeoman"><br>
-        Always a pleasure scaffolding your apps.
-    </p>
-    <p><a class="btn btn-lg btn-success" ng-href="#/">Splendid!<span class="glyphicon glyphicon-ok"></span></a></p>
+<div class="row">
+    <h1>SDAT</h1>
 </div>
 
 <div class="row marketing">
-    <h4>HTML5 Boilerplate</h4>
-    <p>
-        HTML5 Boilerplate is a professional front-end template for building fast, robust, and adaptable web apps or sites.
-    </p>
-
-    <h4>Angular</h4>
-    <p>
-        AngularJS is a toolset for building the framework most suited to your application development.
-    </p>
-
-    <h4>Karma</h4>
-    <p>Spectacular Test Runner for JavaScript.</p>
-
     <editable-table nodes="requirements" pre-create="extendRequirement(node)"></editable-table>
 
     <editable-table nodes="nodes"></editable-table>
@@ -79,14 +61,36 @@
                 <th ng-repeat="node in req.nodeDataSet._data track by node.id">{{node.label}}</th>
                 </thead>
                 <tbody>
-                <tr ng-repeat="node in req.nodeDataSet._data track by node.id" ng-init="node1Index = $index">
+                <tr ng-repeat="node in req.nodeDataSet._data track by $index" ng-init="node1Index = $index">
                     <td>{{node.label}}</td>
-                    <td ng-repeat="node2 in req.nodeDataSet._data track by node2.id" ng-init="node2Index = $index">
+                    <td ng-repeat="node2 in req.nodeDataSet._data track by $index" ng-init="node2Index = $index">
                         {{req.reachabilityMatrix[node1Index][node2Index]}}
                     </td>
                 </tr>
                 </tbody>
             </table>
+
+            <h3>Precedent set</h3>
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <p ng-repeat="node in req.nodeDataSet._data track by $index" ng-init="index = $index">
+                        C{{req.id}}({{node.label}}) = {{req.precedentSet[index]}}
+                    </p>
+                </div>
+            </div>
+
+
+            <h3>Reachability set</h3>
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <p ng-repeat="node in req.nodeDataSet._data track by $index" ng-init="index = $index">
+                        F{{req.id}}({{node.label}}) = {{req.reachabilitySet[index]}}
+                    </p>
+                </div>
+            </div>
+
 
         </uib-tab>
     </uib-tabset>
