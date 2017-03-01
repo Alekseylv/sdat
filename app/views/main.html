@@ -75,7 +75,7 @@
             <div class="panel panel-default">
                 <div class="panel-body">
                     <p ng-repeat="node in req.nodeDataSet._data track by $index" ng-init="index = $index">
-                        C{{req.id}}({{node.label}}) = {{req.precedentSet[index]}}
+                        C{{req.id}}({{node.label}}) = {{req.formattedPrecedentSet[index]}}
                     </p>
                 </div>
             </div>
@@ -86,11 +86,23 @@
             <div class="panel panel-default">
                 <div class="panel-body">
                     <p ng-repeat="node in req.nodeDataSet._data track by $index" ng-init="index = $index">
-                        F{{req.id}}({{node.label}}) = {{req.reachabilitySet[index]}}
+                        F{{req.id}}({{node.label}}) = {{req.formattedReachabilitySet[index]}}
                     </p>
                 </div>
             </div>
 
+            <h3>Information elements</h3>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <p>D{{req.id}}f={{req.formattedInformationalElements}}</p>
+                </div>
+            </div>
+            <h3>Information group</h3>
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <p>D{{req.id}}g={{req.formattedInformationalGroups}}</p>
+                </div>
+            </div>
 
         </uib-tab>
     </uib-tabset>

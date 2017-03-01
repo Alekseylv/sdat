@@ -36,25 +36,41 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
     $scope.requirements = _.map($scope.requirements, $scope.extendRequirement);
 
+    var populateInitialData = function () {
+        _.forEach([[0, 2], [1, 3], [2, 4]], function (tuple) {
+            $scope.requirements[0].edges[tuple[0]][tuple[1]] = true;
+            $scope.ticked(tuple[0], tuple[1], $scope.requirements[0]);
+        });
+    };
+
     $scope.ticked = function (from, to, req) {
         recomputeEdgesAndNodes(req, from, to);
         req.matrix = computeMatrix(req);
         req.reachabilityMatrix = computeReachabilityMatrix(req);
+
         req.reachabilitySet = computeReachabilitySet(req);
         req.precedentSet = computePrecedentSet(req);
+        req.formattedReachabilitySet = _.map(req.reachabilitySet, forEachGetLabel);
+        req.formattedPrecedentSet = _.map(req.precedentSet, forEachGetLabel);
+
+        req.informationalElements = computeInformationalElements(req);
+        req.informationalGroups = computeInformationalGroups(req);
+        req.formattedInformationalElements = _.map(req.informationalElements, _.property('label'));
+        req.formattedInformationalGroups = _.map(req.informationalGroups, _.property('label'));
+        
     };
 
     var recomputeEdgesAndNodes = function (req, from, to) {
         var edge = {id: from + '-' + to, from: parseInt(from), to: to};
 
         if (req.edges[from][to]) {
-            addIfNeeded(req, from);
-            addIfNeeded(req, to);
+            addNodeIfNeeded(req, from);
+            addNodeIfNeeded(req, to);
             req.edgeDataSet.add(edge);
         } else {
             req.edgeDataSet.remove(edge);
-            removeIfNeeded(req, from);
-            removeIfNeeded(req, to);
+            removeNodeIfNeeded(req, from);
+            removeNodeIfNeeded(req, to);
         }
     };
 
@@ -106,13 +122,35 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     var computeSet = function (req, matrix) {
         return _.map(req.nodeDataSet.get(), function (node, index) {
             return _.chain(matrix[index]).map(function (x, i) {
-                return {reachable: x > 0, label: req.nodeDataSet.get()[i].label};
+                return {reachable: x > 0, node: req.nodeDataSet.get()[i]};
             }).filter(function (x) {
                 return x.reachable;
             }).map(function (x) {
-                return x.label;
+                return x.node;
             }).value();
         });
+    };
+
+    var computeInformationalElements = function (req) {
+        return computeInformation(req, function (x) {
+            return x.isEmpty;
+        });
+    };
+
+    var computeInformationalGroups = function (req) {
+        return computeInformation(req, function (x) {
+            return !x.isEmpty;
+        });
+    };
+
+    var computeInformation = function (req, f) {
+        return _.chain(req.nodeDataSet.get()).map(function (node, index) {
+            return {isEmpty: _.isEmpty(req.precedentSet[index]), node: node};
+        }).filter(function (x) {
+            return f(x);
+        }).map(function (x) {
+            return x.node;
+        }).value();
     };
 
     // var printMatrix = function (matrix) {
@@ -122,13 +160,13 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     //     });
     // };
 
-    var removeIfNeeded = function (req, nodeId) {
+    var removeNodeIfNeeded = function (req, nodeId) {
         if (getEdgesOfNode(req, nodeId).length === 0) {
             req.nodeDataSet.remove(nodeId);
         }
     };
 
-    var addIfNeeded = function (req, nodeId) {
+    var addNodeIfNeeded = function (req, nodeId) {
         if (req.nodeDataSet.get(nodeId) === null) {
             req.nodeDataSet.add($scope.nodes[nodeId]);
         }
@@ -144,4 +182,9 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         return matrix.size(matrix).length <= 1;
     };
 
+    var forEachGetLabel = function (arr) {
+        return _.map(arr, _.property('label'));
+    };
+
+    populateInitialData();
 });
