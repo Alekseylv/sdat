@@ -37,7 +37,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     $scope.requirements = _.map($scope.requirements, $scope.extendRequirement);
 
     var populateInitialData = function () {
-        _.forEach([[0, 2], [1, 3], [2, 4]], function (tuple) {
+        _.forEach([[0, 2], [2, 2], [1, 3], [2, 4]], function (tuple) {
             $scope.requirements[0].edges[tuple[0]][tuple[1]] = true;
             $scope.ticked(tuple[0], tuple[1], $scope.requirements[0]);
         });
@@ -57,6 +57,8 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         req.informationalGroups = computeInformationalGroups(req);
         req.formattedInformationalElements = _.map(req.informationalElements, _.property('label'));
         req.formattedInformationalGroups = _.map(req.informationalGroups, _.property('label'));
+
+        req.groupLevels = computeGroupLevels(req);
         
     };
 
@@ -145,12 +147,82 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
     var computeInformation = function (req, f) {
         return _.chain(req.nodeDataSet.get()).map(function (node, index) {
+            node[nodeIndex(req)] = index; // used in computing group levels
             return {isEmpty: _.isEmpty(req.precedentSet[index]), node: node};
         }).filter(function (x) {
             return f(x);
         }).map(function (x) {
             return x.node;
         }).value();
+    };
+
+    var computeGroupLevels = function (req) {
+
+        var groups = req.informationalGroups;
+        var maxLevels = req.informationalGroups.length * 2;
+        var levels = [];
+
+        var areIdsEqual = function (id) {
+            return function (node) {
+                return node.id === id;
+            };
+        };
+
+        var computeSet = function (setToCompute) {
+            return function (group) {
+                return _.uniq(setToCompute[group[nodeIndex(req)]].concat([group]), false, _.property('id'));
+            };
+        };
+
+        var filterLevels = function (setToFilter) {
+            return _.filter(setToFilter, function (node) {
+                return -1 === _.findIndex(levels, areIdsEqual(node.id));
+            });
+        };
+
+        var nodeExists = function (setToCheck) {
+            return function (node) {
+                return -1 !== _.findIndex(setToCheck, areIdsEqual(node.id));
+            };
+        };
+
+        var setCurrentLevel = function (currentLevel) {
+            return function (x) {
+                return _.extend(x, {level: currentLevel});
+            };
+        };
+
+        var groupsAtCurrentLevel = function (reachables, precedents) {
+            return function (g, i) {
+                return _.all(reachables[i], nodeExists(precedents[i]));
+            };
+        };
+
+        //actual algorithm starts
+
+        var reachables = _.map(groups, computeSet(req.reachabilitySet));
+        var precedents = _.map(groups, computeSet(req.precedentSet));
+
+        var currentLevel = 0;
+        while (!_.isEmpty(groups)) {
+
+            var currentLevelNodes = _.filter(groups, groupsAtCurrentLevel(reachables, precedents));
+
+            levels = levels.concat(_.map(currentLevelNodes, setCurrentLevel(currentLevel)));
+
+            groups = _.filter(groups, _.negate(nodeExists(currentLevelNodes)));
+
+            reachables = _.map(groups, _.compose(filterLevels, computeSet(req.reachabilitySet)));
+            precedents = _.map(groups, _.compose(filterLevels, computeSet(req.precedentSet)));
+
+            if (currentLevel > maxLevels) {
+                break;
+            }
+
+            currentLevel++;
+        }
+
+        return _.sortBy(levels, _.property('id'));
     };
 
     // var printMatrix = function (matrix) {
@@ -184,6 +256,10 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
     var forEachGetLabel = function (arr) {
         return _.map(arr, _.property('label'));
+    };
+
+    var nodeIndex = function (req) {
+        return 'index' + req.id + '';
     };
 
     populateInitialData();

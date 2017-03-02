@@ -104,6 +104,17 @@
                 </div>
             </div>
 
+
+            <h3>Hierarchy level</h3>
+
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <p ng-repeat="node in req.informationalGroups track by $index" ng-init="index = $index">
+                        Node ({{node.label}}) is a P{{req.groupLevels[index].level}} hierarchy level group
+                    </p>
+                </div>
+            </div>
+
         </uib-tab>
     </uib-tabset>
 
