@@ -2,6 +2,8 @@
 
 angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
+    $scope._ = _;
+
     $scope.nodes = [
         {id: 0, label: 'd0'},
         {id: 1, label: 'd1'},
@@ -59,6 +61,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         req.formattedInformationalGroups = _.map(req.informationalGroups, _.property('label'));
 
         req.groupLevels = computeGroupLevels(req);
+        req.informationalStructure = computeInformationalStructure(req);
         
     };
 
@@ -223,6 +226,18 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         }
 
         return _.sortBy(levels, _.property('id'));
+    };
+
+    var computeInformationalStructure = function (req) {
+        const groupIds = _.indexBy(req.informationalGroups, 'id');
+        const nodes = req.nodeDataSet.get();
+        return _.map(req.informationalGroups, function (node) {
+            return _.chain(req.edgeDataSet.get())
+                .filter(function (edge) {
+                    return edge.to === node.id && !_.has(groupIds, edge.from);
+                }).map(_.compose(_.propertyOf(nodes), _.property('from')))
+                .value();
+        });
     };
 
     // var printMatrix = function (matrix) {
