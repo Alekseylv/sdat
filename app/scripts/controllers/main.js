@@ -102,6 +102,10 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         var matrix = originalMatrix;
         var iterationCount = 0;
 
+        var isEmptyMatrix = function (matrix) {
+            return matrix.size(matrix).length <= 1;
+        };
+
         while (!isEmptyMatrix(matrix) && math.max(matrix) > 0) {
             matrices.push(matrix);
             matrix = math.multiply(matrix, originalMatrix);
@@ -110,11 +114,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
             }
         }
 
-        if (isEmptyMatrix(matrix)) {
-            return [];
-        }
-
-        return math.sign(_.reduce(matrices, function (memo, num) {
+        return isEmptyMatrix(matrix) ? [] : math.sign(_.reduce(matrices, function (memo, num) {
             return math.add(memo, num);
         }))._data;
     };
@@ -132,35 +132,24 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         return _.map(req.nodeDataSet.get(), function (node, index) {
             return _.chain(matrix[index]).map(function (x, i) {
                 return {reachable: x > 0, node: req.nodeDataSet.get()[i]};
-            }).filter(function (x) {
-                return x.reachable;
-            }).map(function (x) {
-                return x.node;
-            }).value();
+            }).filter(_.property('reachable'))
+                .map(_.property('node')).value();
         });
     };
 
     var computeInformationalElements = function (req) {
-        return computeInformation(req, function (x) {
-            return x.isEmpty;
-        });
+        return computeInformation(req, _.property('isEmpty'));
     };
 
     var computeInformationalGroups = function (req) {
-        return computeInformation(req, function (x) {
-            return !x.isEmpty;
-        });
+        return computeInformation(req, _.negate(_.property('isEmpty')));
     };
 
-    var computeInformation = function (req, f) {
+    var computeInformation = function (req, predicate) {
         return _.chain(req.nodeDataSet.get()).map(function (node, index) {
             node[nodeIndex(req)] = index; // used in computing group levels
             return {isEmpty: _.isEmpty(req.precedentSet[index]), node: node};
-        }).filter(function (x) {
-            return f(x);
-        }).map(function (x) {
-            return x.node;
-        }).value();
+        }).filter(predicate).map(_.property('node')).value();
     };
 
     var computeGroupLevels = function (req) {
@@ -234,13 +223,10 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
     var computeInformationalStructure = function (req) {
         const groupIds = _.indexBy(req.informationalGroups, 'id');
-        const nodes = req.nodeDataSet.get();
         return _.map(req.informationalGroups, function (node) {
-            return _.chain(req.edgeDataSet.get())
-                .filter(function (edge) {
-                    return edge.to === node.id && !_.has(groupIds, edge.from);
-                }).map(_.compose(_.propertyOf(nodes), _.property('from')))
-                .value();
+            return _.filter(req.precedentSet[node.id], function (otherNode) {
+                return !_.has(groupIds, otherNode.id);
+            });
         });
     };
 
@@ -267,10 +253,6 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         return req.edgeDataSet.get().filter(function (edge) {
             return edge.from === nodeId || edge.to === nodeId;
         });
-    };
-
-    var isEmptyMatrix = function (matrix) {
-        return matrix.size(matrix).length <= 1;
     };
 
     var forEachGetLabel = function (arr) {
