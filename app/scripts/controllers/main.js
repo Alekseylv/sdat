@@ -41,12 +41,17 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     var populateInitialData = function () {
         _.forEach([[0, 2], [2, 2], [1, 3], [2, 4]], function (tuple) {
             $scope.requirements[0].edges[tuple[0]][tuple[1]] = true;
-            $scope.ticked(tuple[0], tuple[1], $scope.requirements[0]);
+            recomputeEdgesAndNodes($scope.requirements[0], tuple[0], tuple[1]);
         });
+        recomputeRequirement($scope.requirements[0]);
     };
 
     $scope.ticked = function (from, to, req) {
         recomputeEdgesAndNodes(req, from, to);
+        recomputeRequirement(req);
+    };
+
+    var recomputeRequirement = function (req) {
         req.matrix = computeMatrix(req);
         req.reachabilityMatrix = computeReachabilityMatrix(req);
 
@@ -62,7 +67,6 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
         req.groupLevels = computeGroupLevels(req);
         req.informationalStructure = computeInformationalStructure(req);
-        
     };
 
     var recomputeEdgesAndNodes = function (req, from, to) {
