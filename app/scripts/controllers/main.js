@@ -26,6 +26,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     $scope.extendRequirement = function (req) {
         req.edgeDataSet = new vis.DataSet([]);
         req.nodeDataSet = new vis.DataSet([]);
+        req.deduplicatedEdgeDataSet = new vis.DataSet([]);
         req.matrix = [];
         req.reachabilityMatrix = [];
         req.precedentSet = [];
@@ -68,7 +69,16 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         req.groupLevels = computeGroupLevels(req);
         req.informationalStructure = computeInformationalStructure(req);
 
-        req.deduplicated = deduplicate(req);
+        req.duplicateEdges = computeDuplicateEdges(req);
+        var duplicateIds = _.map(req.duplicateEdges, _.property('id'));
+        var filterFunction = function (x) {
+            return !_.contains(duplicateIds, x.id);
+        };
+        req.deduplicatedEdgeDataSet.clear();
+        req.deduplicatedEdgeDataSet.add(req.edgeDataSet.get({
+            filter: filterFunction
+        }));
+        req.deduplicatedMatrix = computeMatrix(req, filterFunction);
     };
 
     var recomputeEdgesAndNodes = function (req, from, to) {
@@ -97,18 +107,23 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         }
     };
 
-    var computeMatrix = function (req) {
+    var computeMatrix = function (req, p) {
+        var predicate = p || function () {return true;};
         var originalMatrix = [];
         _.forEach(req.nodeDataSet._data, function (node1) {
             originalMatrix.push([]);
             _.forEach(req.nodeDataSet._data, function (node2) {
-                originalMatrix[originalMatrix.length - 1].push(req.edges[node1.id][node2.id] ? 1 : 0);
+                originalMatrix[originalMatrix.length - 1].push(req.edges[node1.id][node2.id] && predicate(createEdge(node1.id, node2.id)) ? 1 : 0);
             });
         });
         return originalMatrix;
     };
 
     var computeReachabilityMatrix = function (req) {
+        return math.sign(computeReachabilityMatrixUnsigned(req))._data;
+    };
+
+    var computeReachabilityMatrixUnsigned = function (req) {
         const nodeCount = req.nodeDataSet.get().length;
         const originalMatrix = math.matrix(computeMatrix(req));
         const matrices = [];
@@ -116,21 +131,14 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         var matrix = originalMatrix;
         var iterationCount = 0;
 
-        var isEmptyMatrix = function (matrix) {
-            return matrix.size(matrix).length <= 1;
-        };
-
-        while (!isEmptyMatrix(matrix) && math.max(matrix) > 0) {
+        while (iterationCount++ < nodeCount && !isEmptyMatrix(matrix) && math.max(matrix) > 0) {
             matrices.push(matrix);
             matrix = math.multiply(matrix, originalMatrix);
-            if (iterationCount++ > nodeCount) {
-                break;
-            }
         }
 
-        return isEmptyMatrix(matrix) ? [] : math.sign(_.reduce(matrices, function (memo, num) {
+        return isEmptyMatrix(matrix) ? [] : _.reduce(matrices, function (memo, num) {
             return math.add(memo, num);
-        }))._data;
+        });
     };
 
 
@@ -214,7 +222,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         var precedents = _.map(groups, computeSet(req.precedentSet));
 
         var currentLevel = 0;
-        while (!_.isEmpty(groups)) {
+        while (!_.isEmpty(groups) && currentLevel++ <= maxLevels) {
 
             var currentLevelNodes = _.filter(groups, groupsAtCurrentLevel(reachables, precedents));
 
@@ -224,12 +232,6 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
             reachables = _.map(groups, _.compose(filterLevels, computeSet(req.reachabilitySet)));
             precedents = _.map(groups, _.compose(filterLevels, computeSet(req.precedentSet)));
-
-            if (currentLevel > maxLevels) {
-                break;
-            }
-
-            currentLevel++;
         }
 
         return _.sortBy(levels, _.property('id'));
@@ -245,8 +247,8 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     };
 
 
-    var deduplicate = function (req) {
-        const duplicates = _.uniq(_.flatten(req.informationalStructure), false, _.property('id'));
+    var computeDuplicateEdges = function (req) {
+        const duplicateElements = _.uniq(_.flatten(req.informationalStructure), false, _.property('id'));
 
         var nodeExists = function (node1) {
             return function (node2) {
@@ -254,7 +256,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
             };
         };
 
-        const elementsToRemove = _.map(duplicates, function (node) {
+        const elementsToRemove = _.chain(duplicateElements).map(function (node) {
             return _.chain(req.groupLevels).filter(function (group, index) {
                 return -1 !== _.findIndex(req.informationalStructure[index], nodeExists(node));
             }).sortBy(_.property('level')).reverse().reduce(function (acc, group) {
@@ -265,8 +267,19 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
             }, []).map(function (n) {
                 return createEdge(node.id, n.id);
             }).value();
-        });
+        }).flatten().value();
 
+        var reachabilityMatrixUnsigned = computeReachabilityMatrixUnsigned(req);
+
+        var duplicateEdges = _.chain(reachabilityMatrixUnsigned._data).map(function (connections, from) {
+            return _.map(connections, function (connectionCount, to) {
+                return _.extend(createEdge('' + from, to), {isDuplicate: connectionCount > 1});
+            });
+        }).flatten().filter(_.property('isDuplicate')).filter(function (edge) {
+            return req.edges[edge.from][edge.to];
+        }).value();
+
+        return _.uniq(elementsToRemove.concat(duplicateEdges), false, _.property('id'));
     };
 
     // var printMatrix = function (matrix) {
@@ -292,6 +305,10 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
     var createEdge = function (from, to) {
         return {id: from + '-' + to, from: parseInt(from), to: to};
+    };
+
+    var isEmptyMatrix = function (matrix) {
+        return matrix.size(matrix).length <= 1;
     };
 
     populateInitialData();
