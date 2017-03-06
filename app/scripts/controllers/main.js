@@ -23,14 +23,14 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         {id: 0, label: 'req1'}
     ];
 
-    $scope.createNode = function() {
-      _.each($scope.requirements, function (req) {
-          req.edges.push([]);
-      });
+    $scope.createNode = function () {
+        _.each($scope.requirements, function (req) {
+            req.edges.push([]);
+        });
     };
 
     $scope.updateNode = function (node) {
-        _.each($scope.requirements, function(req) {
+        _.each($scope.requirements, function (req) {
             if (req.nodeDataSet.get(node.id) !== null) {
                 req.nodeDataSet.update(node);
             }
@@ -51,14 +51,86 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         return req;
     };
 
+    $scope.initialData = {
+        nodes: _.map(_.range(0, 21, 1), function (n) {
+            return {id: n, label: 'd' + n};
+        }),
+        requirements: [{
+            id: 0,
+            label: 'S1',
+            edges: {
+                2: [1],
+                3: [1],
+                4: [1],
+                5: [1],
+                6: [4],
+                7: [4],
+                8: [7],
+                9: [7]
+            }
+        }, {
+            id: 1,
+            label: 'S2',
+            edges: {
+                2: [1],
+                3: [1],
+                10: [1],
+                11: [10],
+                12: [10],
+                13: [10]
+
+            }
+        }, {
+            id: 2,
+            label: 'S3',
+            edges: {
+                2: [1],
+                3: [1],
+                10: [1],
+                11: [10],
+                14: [10],
+                15: [14],
+                16: [14]
+            }
+        }, {
+            id: 3,
+            label: 'S4',
+            edges: {
+                1: [18],
+                2: [1],
+                3: [1],
+                4: [1],
+                5: [4],
+                6: [4],
+                7: [1, 4],
+                8: [7],
+                17: [18],
+                19: [1, 4, 7, 17],
+                20: [18]
+            }
+        }]
+    };
+
+
     $scope.requirements = _.map($scope.requirements, $scope.extendRequirement);
 
     var populateInitialData = function () {
-        _.forEach([[1, 0], [2, 0], [2, 1], [4, 0], [4, 1], [4, 2], [4, 3]], function (tuple) {
-            $scope.requirements[0].edges[tuple[0]][tuple[1]] = true;
-            recomputeEdgesAndNodes($scope.requirements[0], tuple[0], tuple[1]);
+        $scope.nodes = $scope.initialData.nodes;
+        $scope.requirements = _.chain($scope.initialData.requirements)
+            .map(_.partial(_.pick, _, 'id', 'label'))
+            .map($scope.extendRequirement)
+            .value();
+
+        _.each($scope.initialData.requirements, function (req, reqId) {
+            const requirement = $scope.requirements[reqId];
+            _.each(req.edges, function (connections, from) {
+                _.each(connections, function (to) {
+                    requirement.edges[from][to] = true;
+                    recomputeEdgesAndNodes(requirement, parseInt(from), to);
+                });
+            });
+            recomputeRequirement(requirement);
         });
-        recomputeRequirement($scope.requirements[0]);
     };
 
     $scope.ticked = function (from, to, req) {
@@ -89,9 +161,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
             return !_.contains(duplicateIds, x.id);
         };
         req.deduplicatedEdgeDataSet.clear();
-        req.deduplicatedEdgeDataSet.add(req.edgeDataSet.get({
-            filter: filterFunction
-        }));
+        req.deduplicatedEdgeDataSet.add(req.edgeDataSet.get({filter: filterFunction}));
         req.deduplicatedMatrix = computeMatrix(req, filterFunction);
     };
 
@@ -106,7 +176,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
         var addNodeIfNeeded = function (nodeId) {
             if (req.nodeDataSet.get(nodeId) === null) {
-                req.nodeDataSet.add(_.find($scope.nodes, function(node) {
+                req.nodeDataSet.add(_.find($scope.nodes, function (node) {
                     return node.id === nodeId;
                 }));
             }
@@ -256,9 +326,10 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     var computeInformationalStructure = function (req) {
         const groupIds = _.indexBy(req.informationalGroups, 'id');
         return _.map(req.informationalGroups, function (node) {
-            return _.filter(req.precedentSet[node.id], function (otherNode) {
+            var filter = _.filter(req.precedentSet[node[nodeIndex(req)]], function (otherNode) {
                 return !_.has(groupIds, otherNode.id);
             });
+            return filter;
         });
     };
 
@@ -279,7 +350,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
                 if (-1 !== _.findIndex(acc, nodeExists(group))) {
                     return acc;
                 }
-                return acc.concat(req.reachabilitySet[group.id]);
+                return acc.concat(req.reachabilitySet[group[nodeIndex(req)]]);
             }, []).map(function (n) {
                 return createEdge(node.id, n.id);
             }).value();
