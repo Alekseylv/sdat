@@ -169,6 +169,11 @@
                 </tbody>
             </table>
 
+            <h3>Duplicate edges removed</h3>
+            <ol>
+               <li ng-repeat="edge in req.duplicateEdges">From: {{edge.from}} to {{edge.to}}</li>
+            </ol>
+
         </uib-tab>
     </uib-tabset>
 

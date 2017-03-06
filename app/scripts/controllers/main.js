@@ -360,13 +360,15 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
         var duplicateEdges = _.chain(reachabilityMatrixUnsigned._data).map(function (connections, from) {
             return _.map(connections, function (connectionCount, to) {
-                return _.extend(createEdge('' + from, to), {isDuplicate: connectionCount > 1});
+                return _.extend(createEdge('' + req.nodeDataSet.get()[from].id, req.nodeDataSet.get()[to].id), {isDuplicate: connectionCount > 1});
             });
-        }).flatten().filter(_.property('isDuplicate')).filter(function (edge) {
-            return req.edges[edge.from][edge.to];
-        }).value();
+        }).flatten().filter(_.property('isDuplicate')).value();
 
-        return _.uniq(elementsToRemove.concat(duplicateEdges), false, _.property('id'));
+        console.log(duplicateEdges);
+
+        return _.filter(_.uniq(elementsToRemove.concat(duplicateEdges), false, _.property('id')), function (edge) {
+            return req.edges[edge.from][edge.to];
+        });
     };
 
     // var printMatrix = function (matrix) {
