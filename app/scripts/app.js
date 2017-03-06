@@ -70,7 +70,7 @@ angular.module('sdatApp', [
          $scope.removeNode = function (index) {
             var node = $scope.nodes[index];
             $scope.nodes.splice(index, 1);
-            $scope.onDelete({node: node});
+            $scope.onDelete({node: node, index:index});
 
          };
 

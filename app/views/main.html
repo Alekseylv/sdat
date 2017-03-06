@@ -1,15 +1,31 @@
-<div class="row">
-    <h1>SDAT</h1>
-</div>
-
 <div class="row marketing">
-    <editable-table nodes="requirements" pre-create="extendRequirement(node)"></editable-table>
 
-    <editable-table nodes="nodes"></editable-table>
+    <button type="button" class="btn btn-default" ng-click="isEditingRequirementsCollapsed = !isEditingRequirementsCollapsed"
+            ng-init="isEditingRequirementsCollapsed = true">
+        Edit requirements
+    </button>
+    <hr>
+    <div uib-collapse="isEditingRequirementsCollapsed" class="well">
+        <editable-table nodes="requirements" pre-create="extendRequirement(node)"></editable-table>
+    </div>
+    <br>
 
+
+    <button type="button" class="btn btn-default" ng-click="isEditingNodesCollapsed = !isEditingNodesCollapsed"
+            ng-init="isEditingNodesCollapsed = true">
+        Edit nodes
+    </button>
+    <hr>
+    <div uib-collapse="isEditingNodesCollapsed" class="well">
+        <editable-table nodes="nodes" on-create="createNode(node)" on-update="updateNode(node)" on-delete="deleteNode(node)"></editable-table>
+    </div>
+
+    <br>
 
     <uib-tabset active="active">
         <uib-tab ng-repeat="req in requirements track by req.id" index="$index" heading="{{req.label}}">
+
+            <br>
 
             <table class="table">
                 <thead>
@@ -126,7 +142,7 @@
                 </div>
             </div>
 
-            <h3>Daduplicated Graph</h3>
+            <h3>Deduplicated Graph</h3>
 
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -136,7 +152,7 @@
                 </div>
             </div>
 
-            <h3>Daduplicated Matrix</h3>
+            <h3>Deduplicated Matrix</h3>
 
             <table class="table">
                 <thead>

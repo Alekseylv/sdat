@@ -23,6 +23,20 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
         {id: 0, label: 'req1'}
     ];
 
+    $scope.createNode = function() {
+      _.each($scope.requirements, function (req) {
+          req.edges.push([]);
+      });
+    };
+
+    $scope.updateNode = function (node) {
+        _.each($scope.requirements, function(req) {
+            if (req.nodeDataSet.get(node.id) !== null) {
+                req.nodeDataSet.update(node);
+            }
+        });
+    };
+
     $scope.extendRequirement = function (req) {
         req.edgeDataSet = new vis.DataSet([]);
         req.nodeDataSet = new vis.DataSet([]);
@@ -92,7 +106,9 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
 
         var addNodeIfNeeded = function (nodeId) {
             if (req.nodeDataSet.get(nodeId) === null) {
-                req.nodeDataSet.add($scope.nodes[nodeId]);
+                req.nodeDataSet.add(_.find($scope.nodes, function(node) {
+                    return node.id === nodeId;
+                }));
             }
         };
 
