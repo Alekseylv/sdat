@@ -52,7 +52,7 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     };
 
     $scope.initialData = {
-        nodes: _.map(_.range(0, 21, 1), function (n) {
+        nodes: _.map(_.range(0, 27, 1), function (n) {
             return {id: n, label: 'd' + n};
         }),
         requirements: [{
@@ -107,6 +107,116 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
                 17: [18],
                 19: [1, 4, 7, 17],
                 20: [18]
+            }
+        }, {
+            id: 4,
+            label: 'Atrast visus lietotāja pasūtījumus',
+            edges: {
+                // pasutijums
+                7: [6],
+                8: [6],
+                9: [6],
+                // lietotajs
+                23: [22],
+                24: [22],
+                25: [22],
+                26: [22],
+
+                // specific
+                6: [22]
+            }
+        }, {
+            id: 5,
+            label: 'Atrast pasūtījumu ar vislielāko kopējo maksājumu summu',
+            edges: {
+                // pasutijums
+                7: [6],
+                8: [6],
+                9: [6],
+
+                // maksajums
+                18: [17],
+                19: [17],
+                20: [17],
+                21: [17],
+
+                //specific
+                17: [6]
+            }
+        }, {
+            id: 6,
+            label: 'Apskatīt abonementa maksājumus',
+            edges: {
+                // maksajums
+                18: [17],
+                19: [17],
+                20: [17],
+                21: [17, 11],
+
+                // abonements
+                12: [11],
+                13: [11],
+                14: [11],
+                15: [11],
+                16: [11],
+
+                // specific
+                17: [11]
+            }
+        }, {
+            id: 7,
+            label: 'Atrast visus lietotājus, kas ir abonējuši produktu',
+            edges: {
+                // abonements
+                12: [11],
+                13: [11],
+                14: [11],
+                15: [11],
+                16: [11],
+
+                // lietotajs
+                23: [22],
+                24: [22],
+                25: [22],
+                26: [22],
+
+                // produkts
+                2: [1, 11],
+                3: [1],
+                4: [1],
+                5: [1],
+
+                // specific
+                1: [11],
+                11: [22]
+            }
+        }, {
+            id: 8,
+            label: 'Iegūt produkta ienesīgumu balstoties uz maksājumiem',
+            edges: {
+
+                // produkts
+                2: [1],
+                3: [1],
+                4: [1],
+                5: [1],
+
+                // abonements
+                12: [11, 1],
+                13: [11],
+                14: [11],
+                15: [11],
+                16: [11],
+
+                // maksajums
+                18: [17],
+                19: [17],
+                20: [17],
+                21: [17, 11],
+
+                17: [11, 1],
+                11: [1]
+
             }
         }]
     };
@@ -326,10 +436,9 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
     var computeInformationalStructure = function (req) {
         const groupIds = _.indexBy(req.informationalGroups, 'id');
         return _.map(req.informationalGroups, function (node) {
-            var filter = _.filter(req.precedentSet[node[nodeIndex(req)]], function (otherNode) {
+            return _.filter(req.precedentSet[node[nodeIndex(req)]], function (otherNode) {
                 return !_.has(groupIds, otherNode.id);
             });
-            return filter;
         });
     };
 
@@ -363,8 +472,6 @@ angular.module('sdatApp').controller('MainCtrl', function ($scope) {
                 return _.extend(createEdge('' + req.nodeDataSet.get()[from].id, req.nodeDataSet.get()[to].id), {isDuplicate: connectionCount > 1});
             });
         }).flatten().filter(_.property('isDuplicate')).value();
-
-        console.log(duplicateEdges);
 
         return _.filter(_.uniq(elementsToRemove.concat(duplicateEdges), false, _.property('id')), function (edge) {
             return req.edges[edge.from][edge.to];
