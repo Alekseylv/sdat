@@ -2,7 +2,7 @@
 
     <button type="button" class="btn btn-default" ng-click="isEditingRequirementsCollapsed = !isEditingRequirementsCollapsed"
             ng-init="isEditingRequirementsCollapsed = true">
-        Edit requirements
+        Rediģēt prasības
     </button>
     <hr>
     <div uib-collapse="isEditingRequirementsCollapsed" class="well">
@@ -13,7 +13,7 @@
 
     <button type="button" class="btn btn-default" ng-click="isEditingNodesCollapsed = !isEditingNodesCollapsed"
             ng-init="isEditingNodesCollapsed = true">
-        Edit nodes
+        Rediģēt virsotnes
     </button>
     <hr>
     <div uib-collapse="isEditingNodesCollapsed" class="well">
@@ -28,7 +28,7 @@
             <br>
             <button type="button" class="btn btn-default" ng-click="isEditingEdgesCollapsed = !isEditingEdgesCollapsed"
                     ng-init="isEditingEdgesCollapsed = true">
-                Edit Edges
+                Rediģēt kortežus
             </button>
             <hr>
             <div uib-collapse="isEditingEdgesCollapsed">
@@ -52,7 +52,7 @@
 
             <h2>{{req.label}}</h2>
 
-            <h3>Graph</h3>
+            <h3>Grafs</h3>
 
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -61,7 +61,7 @@
                 </div>
             </div>
 
-            <h3>Matrix</h3>
+            <h3>Semantiskā saistību matrica</h3>
 
             <table class="table">
                 <thead>
@@ -78,7 +78,7 @@
                 </tbody>
             </table>
 
-            <h3>Reachability matrix</h3>
+            <h3>Semantiskā sasniedzamību matrica</h3>
 
             <table class="table">
                 <thead>
@@ -95,7 +95,7 @@
                 </tbody>
             </table>
 
-            <h3>Precedent set</h3>
+            <h3>Precedentu kopa</h3>
 
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -106,7 +106,7 @@
             </div>
 
 
-            <h3>Reachability set</h3>
+            <h3>Sasniedzamības kopa</h3>
 
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -116,13 +116,13 @@
                 </div>
             </div>
 
-            <h3>Information elements</h3>
+            <h3>Informacionālie elementi</h3>
             <div class="panel panel-default">
                 <div class="panel-body">
                     <p>D{{req.id}}f={{req.formattedInformationalElements}}</p>
                 </div>
             </div>
-            <h3>Information group</h3>
+            <h3>Informacionālās grupas</h3>
             <div class="panel panel-default">
                 <div class="panel-body">
                     <p>D{{req.id}}g={{req.formattedInformationalGroups}}</p>
@@ -130,7 +130,7 @@
             </div>
 
 
-            <h3>Hierarchy level</h3>
+            <h3>Grupu līmeņi</h3>
 
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -141,7 +141,7 @@
             </div>
 
 
-            <h3>Informational structure</h3>
+            <h3>Grupu informacionālais sastāvs</h3>
 
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -151,7 +151,7 @@
                 </div>
             </div>
 
-            <h3>Deduplicated Graph</h3>
+            <h3>Grafs bez liekām saitēm</h3>
 
             <div class="panel panel-default">
                 <div class="panel-body">
@@ -161,7 +161,7 @@
                 </div>
             </div>
 
-            <h3>Deduplicated Matrix</h3>
+            <h3>Semantiskā saistību matrica bez liekām saitēm</h3>
 
             <table class="table">
                 <thead>
@@ -178,7 +178,7 @@
                 </tbody>
             </table>
 
-            <h3>Duplicate edges removed</h3>
+            <h3>Dzēstās saites</h3>
             <ol>
                <li ng-repeat="edge in req.duplicateEdges">From: {{edge.from}} to {{edge.to}}</li>
             </ol>
