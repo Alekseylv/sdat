@@ -1,0 +1,56 @@
+@startuml
+
+
+'package "Some Group" {
+'HTTP - [First Component]
+'[Another Component]
+'}
+'
+'package "Other Groups" {
+'FTP - [Second Component]
+'
+'[First Component] --> FTP
+'}
+
+component {
+interface a
+interface b
+interface c
+interface d
+interface e <<M>>
+interface f <<M>>
+interface g <<M>>
+interface h
+interface j
+interface k
+interface l
+interface m
+interface n
+interface o
+}
+
+
+b --> a
+a --> m
+m -l-> b
+
+c --> m
+
+a -r-> d
+d -r-> e
+e --> f
+e --> g
+g --> h
+e --> j
+l --> h
+e --> m
+n --> m
+o --> b
+k -r-> o
+h -r-> b
+
+skinparam interface {
+backgroundColor<<M>> RosyBrown
+}
+
+@enduml
